@@ -1,0 +1,11 @@
+[{
+    "title": "Umami Analytics",
+    "url": "/deploy/app/app-umami",
+    "summary": "Privacy-focused, open-source web analytics alternative to Google Analytics",
+    "content": "Umami is a simple, fast, privacy-focused analytics platform. Track website visitors without collecting personal data or requiring cookie consent. Self-hosted on Quant Cloud for complete data ownership.",
+    "image": "https://raw.githubusercontent.com/quantcdn-templates/app-umami/main/quant/screenshot.png",
+    "categories": ["analytics", "privacy"],
+    "tags": ["umami", "analytics", "privacy", "gdpr"],
+    "template_type": "app",
+    "requires_db": true
+}]

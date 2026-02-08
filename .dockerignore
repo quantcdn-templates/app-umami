@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose.override.yml
+docker-compose.override.yml.example
+
+# Documentation
+README.md
+LICENSE
+
+# CI/CD
+.github
+
+# Environment files
+.env
+.env.*
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store

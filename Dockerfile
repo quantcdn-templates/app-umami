@@ -1,0 +1,36 @@
+# Umami Analytics - Privacy-focused web analytics
+# Uses official Umami image as build source, runs behind Quant proxy.
+#
+# Architecture:
+#   Internet → Quant Edge → :3000 (proxy) → :3001 (Umami/Next.js)
+
+ARG UMAMI_VERSION=postgresql-latest
+ARG NODE_VERSION=22
+
+# Source stage: extract built app from official Umami image
+FROM ghcr.io/umami-software/umami:${UMAMI_VERSION} AS source
+
+# Production stage: run behind Quant proxy
+FROM ghcr.io/quantcdn-templates/app-node:${NODE_VERSION}
+
+WORKDIR /app
+
+# Copy entrypoint scripts
+COPY quant/entrypoints/ /quant-entrypoint.d/
+RUN find /quant-entrypoint.d -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+
+# Copy entire Umami application from official image
+COPY --from=source --chown=node:node /app ./
+
+# Prisma CLI must be in PATH for DB migrations
+ENV PATH="/app/node_modules/.bin:${PATH}"
+
+# CRITICAL: App port must be 3001 (proxy runs on 3000)
+ENV PORT=3001
+ENV HOSTNAME="0.0.0.0"
+
+# Expose proxy port
+EXPOSE 3000
+
+# Startup: run DB check, update tracker, then start server
+CMD ["sh", "-c", "node scripts/check-db.js && node scripts/update-tracker.js && node server.js"]
