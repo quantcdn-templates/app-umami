@@ -32,5 +32,8 @@ ENV HOSTNAME="0.0.0.0"
 # Expose proxy port
 EXPOSE 3000
 
-# Startup: run DB check, update tracker, then start server
-CMD ["sh", "-c", "node scripts/check-db.js && node scripts/update-tracker.js && node server.js"]
+# Startup: run DB check, update tracker, then start server.
+# HOSTNAME must be forced at exec time: Fargate's container runtime can set HOSTNAME to the
+# task ENI hostname, overriding the ENV above — Next standalone then binds to the ENI IP
+# and the quant-proxy's 127.0.0.1:3001 forward gets ECONNREFUSED.
+CMD ["sh", "-c", "node scripts/check-db.js && node scripts/update-tracker.js && HOSTNAME=0.0.0.0 exec node server.js"]
