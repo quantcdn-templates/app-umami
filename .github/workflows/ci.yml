@@ -36,6 +36,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          pull: true
           push: false
           tags: app-umami:test
           cache-from: type=gha
