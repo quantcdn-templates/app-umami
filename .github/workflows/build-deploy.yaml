@@ -50,11 +50,19 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
           platforms: ${{ vars.BUILD_PLATFORM || 'linux/arm64' }}
           push: true
           tags: ${{ steps.init.outputs.stripped_endpoint }}/${{ secrets.QUANT_ORGANIZATION }}/${{ steps.init.outputs.quant_application }}:umami-${{ steps.init.outputs.image_suffix_clean }}
           cache-from: type=gha,scope=umami
           cache-to: type=gha,mode=max,scope=umami
+
+      - name: Verify published Node runtime
+        env:
+          IMAGE: ${{ steps.init.outputs.stripped_endpoint }}/${{ secrets.QUANT_ORGANIZATION }}/${{ steps.init.outputs.quant_application }}:umami-${{ steps.init.outputs.image_suffix_clean }}
+        run: |
+          docker pull "$IMAGE"
+          docker run --rm --entrypoint node "$IMAGE" /usr/local/bin/verify-node-runtime.cjs
 
       - name: Translate docker-compose for Quant Cloud
         uses: quantcdn/quant-cloud-compose-action@v4
