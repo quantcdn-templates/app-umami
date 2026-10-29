@@ -40,9 +40,12 @@ docker-compose up -d
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `APP_SECRET` | Secret key for sessions (use `openssl rand -base64 32`) | Yes |
+| `DATABASE_URL` | Explicit PostgreSQL connection string (overrides managed settings) | For local/custom databases |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Injected by Quant Cloud managed PostgreSQL | Automatic on Quant Cloud |
+| `APP_SECRET` | Session secret; on Quant Cloud defaults to a stable HMAC derived from the managed database password and database identity | Required with a custom `DATABASE_URL` |
 | `TRACKER_SCRIPT_NAME` | Rename tracking script to avoid ad blockers | No |
+
+Rotating the managed database password also rotates the fallback session secret and signs out existing sessions. Set an explicit `APP_SECRET` to manage session-secret rotation independently.
 
 ### Adding to Your Website
 

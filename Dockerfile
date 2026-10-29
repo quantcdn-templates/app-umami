@@ -13,6 +13,8 @@ FROM ghcr.io/umami-software/umami:${UMAMI_VERSION} AS source
 # Production stage: run behind Quant proxy
 FROM ghcr.io/quantcdn-templates/app-node:${NODE_VERSION}
 
+COPY quant/start.cjs /usr/local/bin/quant-umami-start.cjs
+
 WORKDIR /app
 
 # Copy entrypoint scripts
@@ -32,8 +34,5 @@ ENV HOSTNAME="0.0.0.0"
 # Expose proxy port
 EXPOSE 3000
 
-# Startup: run DB check, update tracker, then start server.
-# HOSTNAME must be forced at exec time: Fargate's container runtime can set HOSTNAME to the
-# task ENI hostname, overriding the ENV above — Next standalone then binds to the ENI IP
-# and the quant-proxy's 127.0.0.1:3001 forward gets ECONNREFUSED.
-CMD ["sh", "-c", "node scripts/check-db.js && node scripts/update-tracker.js && HOSTNAME=0.0.0.0 exec node server.js"]
+# Assemble managed PostgreSQL configuration, migrate, then start Next.js.
+CMD ["node", "/usr/local/bin/quant-umami-start.cjs"]
