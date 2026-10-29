@@ -53,16 +53,18 @@ jobs:
           mkdir -p "$RUNNER_TEMP/umami-tls"
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=umami-db \
             -keyout "$RUNNER_TEMP/umami-tls/server.key" -out "$RUNNER_TEMP/umami-tls/server.crt"
+          printf '%s\n' '#!/bin/sh' 'sed -i "1i hostnossl all all all reject" "$PGDATA/pg_hba.conf"' > "$RUNNER_TEMP/umami-tls/require-tls.sh"
           docker run -d --name umami-db --network umami-test \
+            -v "$RUNNER_TEMP/umami-tls/require-tls.sh:/docker-entrypoint-initdb.d/require-tls.sh:ro" \
             -v "$RUNNER_TEMP/umami-tls:/certs" --entrypoint sh \
             -e POSTGRES_USER=umami -e POSTGRES_PASSWORD=ci-test:password@ \
             -e POSTGRES_DB=umami postgres:15-alpine -c \
             'chown postgres:postgres /certs/server.key; chmod 600 /certs/server.key; exec docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/certs/server.crt -c ssl_key_file=/certs/server.key'
           for attempt in $(seq 1 30); do
-            if docker exec umami-db pg_isready -U umami -d umami; then break; fi
+            if docker exec umami-db pg_isready -h 127.0.0.1 -U umami -d umami; then break; fi
             sleep 2
           done
-          docker exec umami-db pg_isready -U umami -d umami
+          docker exec umami-db pg_isready -h 127.0.0.1 -U umami -d umami
           docker run -d --name umami-test --network umami-test -p 3000:3000 \
             -v "$RUNNER_TEMP/umami-tls/server.crt:/certs/server.crt:ro" \
             -e DB_SSLROOTCERT=/certs/server.crt \
@@ -72,8 +74,8 @@ jobs:
             app-umami:test
           for attempt in $(seq 1 60); do
             if curl -fsS http://localhost:3000/api/heartbeat; then
-              TLS_CONNECTIONS=$(docker exec umami-db psql -U umami -d umami -Atc 'SELECT count(*) FROM pg_stat_ssl WHERE ssl')
-              test "$TLS_CONNECTIONS" -gt 0
+              TLS_RULES=$(docker exec umami-db psql -U umami -d umami -Atc "SELECT count(*) FROM pg_hba_file_rules WHERE type = 'hostnossl' AND auth_method = 'reject'")
+              test "$TLS_RULES" -gt 0
               exit 0
             fi
             sleep 2

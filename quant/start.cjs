@@ -11,9 +11,13 @@ if (!env.DATABASE_URL && env.DB_HOST) {
   url.password = env.DB_PASSWORD;
   url.pathname = '/' + encodeURIComponent(env.DB_DATABASE);
   // Quant Cloud managed PostgreSQL requires encrypted connections.
-  url.searchParams.set('sslmode', env.DB_SSLMODE || 'verify-full');
-  url.searchParams.set('sslrootcert', env.DB_SSLROOTCERT ||
-    '/usr/local/share/ca-certificates/amazon-rds-global-bundle.pem');
+  if (env.DISABLE_DB_TLS === 'true') {
+    url.searchParams.set('sslmode', 'disable');
+  } else {
+    url.searchParams.set('sslmode', env.DB_SSLMODE || 'verify-full');
+    url.searchParams.set('sslrootcert', env.DB_SSLROOTCERT ||
+      '/opt/rds-ca-certs/rds-ca-cert-bundle.pem');
+  }
   env.DATABASE_URL = url.toString();
 }
 if (!env.DATABASE_URL) throw new Error('Set DATABASE_URL or the managed DB_* settings');
