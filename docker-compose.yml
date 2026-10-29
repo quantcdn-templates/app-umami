@@ -7,9 +7,9 @@ services:
     build: .
     restart: always
     environment:
-      DATABASE_URL: postgresql://umami:${DB_PASSWORD:-umami}@db:5432/umami
+      # Quant Cloud injects managed DB_* settings. Local credentials belong in
+      # docker-compose.override.yml; do not override the cloud database here.
       DATABASE_TYPE: postgresql
-      APP_SECRET: ${APP_SECRET:-replace-me-with-a-random-string}
       # Optional: Rename tracking script to avoid ad blockers
       # TRACKER_SCRIPT_NAME: stats
     ports:

@@ -11,6 +11,7 @@ services:
     build:
       context: .
     environment:
+      DATABASE_URL: postgresql://umami:${DB_PASSWORD:-umami}@db:5432/umami
       # Generate a secure secret: openssl rand -base64 32
       APP_SECRET: local-dev-secret-change-in-production
       # Optional: Enable debug logging

@@ -51,7 +51,7 @@ jobs:
           trap 'docker rm -f umami-test umami-db >/dev/null 2>&1; docker network rm umami-test >/dev/null 2>&1' EXIT
           docker network create umami-test
           docker run -d --name umami-db --network umami-test \
-            -e POSTGRES_USER=umami -e POSTGRES_PASSWORD=ci-test-password \
+            -e POSTGRES_USER=umami -e POSTGRES_PASSWORD=ci-test:password@ \
             -e POSTGRES_DB=umami postgres:15-alpine
           for attempt in $(seq 1 30); do
             if docker exec umami-db pg_isready -U umami -d umami; then break; fi
@@ -59,8 +59,9 @@ jobs:
           done
           docker exec umami-db pg_isready -U umami -d umami
           docker run -d --name umami-test --network umami-test -p 3000:3000 \
-            -e DATABASE_URL="postgresql://umami:ci-test-password@umami-db:5432/umami" \
-            -e DATABASE_TYPE=postgresql -e APP_SECRET=ci-only-test-secret \
+            -e DB_HOST=umami-db -e DB_PORT=5432 -e DB_DATABASE=umami \
+            -e DB_USERNAME=umami -e DB_PASSWORD=ci-test:password@ \
+            -e DATABASE_TYPE=postgresql \
             app-umami:test
           for attempt in $(seq 1 60); do
             if curl -fsS http://localhost:3000/api/heartbeat; then exit 0; fi
