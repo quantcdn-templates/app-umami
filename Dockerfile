@@ -13,6 +13,7 @@ FROM ghcr.io/umami-software/umami:${UMAMI_VERSION} AS source
 # Production stage: run behind Quant proxy
 FROM ghcr.io/quantcdn-templates/app-node:${NODE_VERSION}
 
+# Managed database CA trust is inherited from app-node, matching Drupal.
 COPY quant/start.cjs /usr/local/bin/quant-umami-start.cjs
 
 WORKDIR /app

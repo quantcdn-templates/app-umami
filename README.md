@@ -42,6 +42,9 @@ docker-compose up -d
 |----------|-------------|----------|
 | `DATABASE_URL` | Explicit PostgreSQL connection string (overrides managed settings) | For local/custom databases |
 | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Injected by Quant Cloud managed PostgreSQL | Automatic on Quant Cloud |
+| `DISABLE_DB_TLS` | Set to `true` only for local databases, matching the Drupal template convention | Optional |
+| `DB_SSLMODE` | Managed connection TLS mode; defaults to `verify-full` (encryption and server identity verification) | Optional |
+| `DB_SSLROOTCERT` | Trusted database CA file; defaults to `/opt/rds-ca-certs/rds-ca-cert-bundle.pem`, shared with the PHP/Drupal templates | Optional |
 | `APP_SECRET` | Session secret; on Quant Cloud defaults to a stable HMAC derived from the managed database password and database identity | Required with a custom `DATABASE_URL` |
 | `TRACKER_SCRIPT_NAME` | Rename tracking script to avoid ad blockers | No |
 
