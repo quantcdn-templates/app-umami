@@ -64,6 +64,8 @@ jobs:
           done
           docker exec umami-db pg_isready -U umami -d umami
           docker run -d --name umami-test --network umami-test -p 3000:3000 \
+            -v "$RUNNER_TEMP/umami-tls/server.crt:/certs/server.crt:ro" \
+            -e DB_SSLROOTCERT=/certs/server.crt \
             -e DB_HOST=umami-db -e DB_PORT=5432 -e DB_DATABASE=umami \
             -e DB_USERNAME=umami -e DB_PASSWORD=ci-test:password@ \
             -e DATABASE_TYPE=postgresql \

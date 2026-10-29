@@ -13,6 +13,10 @@ FROM ghcr.io/umami-software/umami:${UMAMI_VERSION} AS source
 # Production stage: run behind Quant proxy
 FROM ghcr.io/quantcdn-templates/app-node:${NODE_VERSION}
 
+# Trust the managed RDS server certificate without disabling TLS verification.
+RUN curl -fsS --retry 3 https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+    -o /usr/local/share/ca-certificates/amazon-rds-global-bundle.pem
+
 COPY quant/start.cjs /usr/local/bin/quant-umami-start.cjs
 
 WORKDIR /app
