@@ -10,6 +10,8 @@ if (!env.DATABASE_URL && env.DB_HOST) {
   url.username = env.DB_USERNAME;
   url.password = env.DB_PASSWORD;
   url.pathname = '/' + encodeURIComponent(env.DB_DATABASE);
+  // Quant Cloud managed PostgreSQL requires encrypted connections.
+  url.searchParams.set('sslmode', env.DB_SSLMODE || 'require');
   env.DATABASE_URL = url.toString();
 }
 if (!env.DATABASE_URL) throw new Error('Set DATABASE_URL or the managed DB_* settings');

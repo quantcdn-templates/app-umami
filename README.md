@@ -42,6 +42,7 @@ docker-compose up -d
 |----------|-------------|----------|
 | `DATABASE_URL` | Explicit PostgreSQL connection string (overrides managed settings) | For local/custom databases |
 | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Injected by Quant Cloud managed PostgreSQL | Automatic on Quant Cloud |
+| `DB_SSLMODE` | Managed connection TLS mode; defaults to `require` | Optional |
 | `APP_SECRET` | Session secret; on Quant Cloud defaults to a stable HMAC derived from the managed database password and database identity | Required with a custom `DATABASE_URL` |
 | `TRACKER_SCRIPT_NAME` | Rename tracking script to avoid ad blockers | No |
 
