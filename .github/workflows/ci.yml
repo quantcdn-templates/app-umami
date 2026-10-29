@@ -38,26 +38,33 @@ jobs:
           context: .
           pull: true
           push: false
+          load: true
           tags: app-umami:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Test container starts
+      - name: Verify patched Node runtime
+        run: docker run --rm --entrypoint node app-umami:test /usr/local/bin/verify-node-runtime.cjs
+
+      - name: Test application with PostgreSQL
         run: |
-          # Start just the umami service with a mock database URL
-          # (won't fully work without DB, but validates image loads)
-          docker run -d --name umami-test \
-            -e DATABASE_URL="postgresql://test:test@localhost:5432/test" \
-            -e APP_SECRET="test-secret" \
-            app-umami:test || true
-
-          # Give it a moment to attempt startup
-          sleep 5
-
-          # Check if container is running (may fail due to no DB, but image should load)
-          docker logs umami-test 2>&1 | head -50
-
-          # Cleanup
-          docker rm -f umami-test || true
-
-          echo "✓ Docker image builds and loads successfully"
+          trap 'docker rm -f umami-test umami-db >/dev/null 2>&1; docker network rm umami-test >/dev/null 2>&1' EXIT
+          docker network create umami-test
+          docker run -d --name umami-db --network umami-test \
+            -e POSTGRES_USER=umami -e POSTGRES_PASSWORD=ci-test-password \
+            -e POSTGRES_DB=umami postgres:15-alpine
+          for attempt in $(seq 1 30); do
+            if docker exec umami-db pg_isready -U umami -d umami; then break; fi
+            sleep 2
+          done
+          docker exec umami-db pg_isready -U umami -d umami
+          docker run -d --name umami-test --network umami-test -p 3000:3000 \
+            -e DATABASE_URL="postgresql://umami:ci-test-password@umami-db:5432/umami" \
+            -e DATABASE_TYPE=postgresql -e APP_SECRET=ci-only-test-secret \
+            app-umami:test
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/api/heartbeat; then exit 0; fi
+            sleep 2
+          done
+          docker logs umami-test
+          exit 1
