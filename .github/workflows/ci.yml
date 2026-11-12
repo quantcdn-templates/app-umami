@@ -14,7 +14,7 @@ on:
       - main
   schedule:
     # Run daily at midnight UTC
-    - cron: '0 0 * * *'
+    - cron: '37 13 * * *'
   workflow_dispatch:
 
 concurrency:
